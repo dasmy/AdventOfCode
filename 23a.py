@@ -8,12 +8,15 @@ def print_state(field, rooms, c=0, total=0):
     print('#' + ''.join(PODS[f] for f in field) + '#')
     print('###' + ''.join(PODS[r] + '#' for r in rooms[:, 0]) + '##')
     print('  #' + ''.join(PODS[r] + '#' for r in rooms[:, 1]))
-    print(f'  #########  [{c}, {total}]\n')
+    print(f'  #########  [{c}, {total}]')
 
 
-def finished(fr):
-    field, rooms = unpack(fr)
+def finished(rooms):
+    rooms = np.asarray(rooms)
     return np.all(rooms == [[1], [2], [3], [4]])
+
+
+assert finished([[1, 1], [2, 2], [3, 3], [4, 4]])
 
 
 def pack(field, rooms):
@@ -33,9 +36,7 @@ def possible_moves(fr):
     # see what we can do about the rooms
     for iroom, room in enumerate(rooms, start=1):
         room_exit_on_field = 2 * iroom
-        if field[room_exit_on_field] > 0:
-            # room exit is blocked
-            continue
+        assert field[room_exit_on_field] == 0  # room exit is blocked
 
         if room[0] in (iroom, 0) and room[1] in (iroom, 0):
             # nothing to do in this room
@@ -50,10 +51,13 @@ def possible_moves(fr):
         energy_per_step = [1, 10, 100, 1000][room[pod_to_move] - 1]
 
         # move left
-        for step in range(1, room_exit_on_field):
+        for step in range(1, room_exit_on_field + 1):
             if field[room_exit_on_field - step] > 0:
                 # occupied - cannot move further
                 break
+            elif room_exit_on_field - step in (2, 4, 6, 8):
+                # this is a room exit, dont stop here
+                continue
             else:
                 f = field.copy()
                 f[room_exit_on_field - step] = room[pod_to_move]
@@ -67,6 +71,9 @@ def possible_moves(fr):
             if field[room_exit_on_field + step] > 0:
                 # occupied - cannot move further
                 break
+            elif room_exit_on_field + step in (2, 4, 6, 8):
+                # this is a room exit, dont stop here
+                continue
             else:
                 f = field.copy()
                 f[room_exit_on_field + step] = room[pod_to_move]
@@ -75,11 +82,10 @@ def possible_moves(fr):
                 c = (1 + pod_to_move + step) * energy_per_step
                 results.append((f, r, c))
 
-    # see what can be done with pods in the field
+    # see if a pod can be moved directly into its room
     for pos, iroom in enumerate(field):
         room_exit_on_field = 2 * iroom
         delta = pos - room_exit_on_field
-        energy_per_step = [1, 10, 100, 1000][iroom - 1]
 
         if iroom == 0:
             # no pod here
@@ -94,6 +100,7 @@ def possible_moves(fr):
             # path to room exit is blocked on field
             continue
         else:
+            energy_per_step = [1, 10, 100, 1000][iroom - 1]
             f = field.copy()
             f[pos] = 0
             r = rooms.copy()
@@ -106,36 +113,39 @@ def possible_moves(fr):
 
 
 def play(rooms):
+    best_so_far = 999999
+    distances = {}
+
+    def move(fr, energy=0):
+        field, rooms = unpack(fr)
+        nonlocal best_so_far
+        nonlocal distances
+
+        if finished(rooms):
+            if energy < best_so_far:
+                best_so_far = energy
+                print(f'New minimum: {energy}')
+        else:
+            for f, r, c in possible_moves(pack(field, rooms)):
+                fr = pack(f, r)
+                e_total = c + energy
+                if e_total < distances.get(fr, 999999):
+                    distances[fr] = e_total
+                    if c + energy < best_so_far:
+                        #print_state(f, r, c, c + energy)
+                        move(pack(f, r), c + energy)
+
     field = np.zeros((11), dtype=int)
     rooms = np.asarray(rooms)
-
-    fr = pack(field, rooms)
-
-    visited = set()
-    distance = {fr: 0}
-
-    current = fr
-
-    # modified dijkstra algorithm
-    while not finished(current):
-        assert current not in visited
-
-        current_distance = distance[current]
-
-        for f, r, c in possible_moves(current):
-            fr_next = pack(f, r)
-            if fr_next not in visited:
-                distance[fr_next] = min(distance.get(fr_next, 999999), current_distance + c)
-
-        visited.add(current)
-        del distance[current]
-
-        current = min(distance, key=distance.get)
-        #print_state(*unpack(current), distance[current])
-        print(distance[current])
-
-    print(f'Minimum Energy: {distance[current]}')
+    move(pack(field, rooms))
+    print(f'Minimum Energy: {best_so_far}')
 
 
-#play([[2, 1], [3, 4], [2, 3], [4, 1]])
-play([[2, 3], [1, 4], [2, 4], [3, 1]])
+A = 1
+B = 2
+C = 3
+D = 4
+
+
+play([[B, A], [C, D], [B, C], [D, A]])
+play([[B, C], [A, D], [B, D], [C, A]])
