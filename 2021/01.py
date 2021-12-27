@@ -2,10 +2,13 @@ import numpy as np
 
 
 def compute_depth(input):
-    cumsum = np.convolve(input, np.ones(3), mode='valid')
-    delta = np.diff(cumsum)
-    num_increased = np.count_nonzero(delta > 0)
-    print(f'num_increased = {num_increased}')
+    for part, raw_data in [
+        ('Part One', input),
+        ('Part Two', np.convolve(input, np.ones(3), mode='valid'))]:
+
+        delta = np.diff(raw_data)
+        num_increased = np.count_nonzero(delta > 0)
+        print(f'{part}: num_increased = {num_increased}')
 
 
 compute_depth([

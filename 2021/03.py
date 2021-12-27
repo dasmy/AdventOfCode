@@ -1,14 +1,29 @@
 import numpy as np
 
 
-def power_consumption(input):
-    
+def power_consumption_part_one(input):
+    epsilon, gamma = 0, 0
+
     bit_separated = [[int(bit) for bit in number] for number in input]
     bit_separated = np.asarray(bit_separated, dtype=bool)
-    
+
     num_bits_per_position = np.count_nonzero(bit_separated, axis=0)
 
-    bits_epsilon = [1 if num_bits >= len(input) / 2 else 0 for num_bits in num_bits_per_position]
+    bits_epsilon = ['1' if num_bits >= len(input) / 2 else '0' for num_bits in num_bits_per_position]
+    bits_gamma = ['0' if num_bits >= len(input) / 2 else '1' for num_bits in num_bits_per_position]
+
+    bits_epsilon = ''.join(bits_epsilon)
+    bits_gamma = ''.join(bits_gamma)
+
+    epsilon = int(bits_epsilon, 2)
+    gamma = int(bits_gamma, 2)
+
+    print(f'Part One: Epsilon = {epsilon}, Gamma = {gamma}, Power = {epsilon*gamma}')
+
+
+def power_consumption_part_two(input):
+    bit_separated = [[int(bit) for bit in number] for number in input]
+    bit_separated = np.asarray(bit_separated, dtype=bool)
 
     filtered = bit_separated.copy()
     for col in range(len(filtered.T)):
@@ -35,7 +50,12 @@ def power_consumption(input):
     oxygen = int(oxygen_bits, 2)
     co2 = int(co2_bits, 2)
 
-    print(f'Oxygen = {oxygen}, CO2 = {co2}, Product = {oxygen*co2}')
+    print(f'Part Two: Oxygen = {oxygen}, CO2 = {co2}, Product = {oxygen*co2}')
+
+
+def power_consumption(input):
+    power_consumption_part_one(input)
+    power_consumption_part_two(input)
 
 
 power_consumption([

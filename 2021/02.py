@@ -1,6 +1,23 @@
 
 
-def pilot(input):
+def pilot_part_one(input):
+    h, v = 0, 0
+
+    for command in input:
+        cmd, val = command.split(' ')
+        if cmd == 'forward':
+            h += int(val)
+        elif cmd == 'up':
+            v -= int(val)
+        elif cmd == 'down':
+            v += int(val)
+        else:
+            assert False
+
+    print(f'Part One: h = {h}, v= {v}, prod = {h*v}')
+
+
+def pilot_part_two(input):
     aim = 0
     h, v = 0, 0
 
@@ -16,7 +33,12 @@ def pilot(input):
         else:
             assert False
 
-    print(f'h = {h}, v= {v}, prod = {h*v}')
+    print(f'Part Two: h = {h}, v= {v}, prod = {h*v}')
+
+
+def pilot(input):
+    pilot_part_one(input)
+    pilot_part_two(input)
 
 
 pilot([

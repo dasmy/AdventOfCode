@@ -2,18 +2,31 @@ import numpy as np
 
 
 def bingo(numbers, boards):
+    last_board = None
+    boards_not_won = set(range(len(boards)))
     boards = np.asarray(boards)
+    has_winner = False
     for number in numbers:
         boards[boards == number] = 0
         for axis in [1, 2]:
             sum = boards.sum(axis=axis)
-            winners = np.argwhere(sum == 0)
+            winners = np.asarray(np.argwhere(sum == 0))
             if len(winners > 0):
-                assert len(winners) == 1
-                winner_board = winners[0, 0]
-                points = boards[winner_board].sum()
-                print(f'Winner Board = {winner_board}, Winning Number = {number}, Points = {points}, Total Points = {number*points}')
-                return
+                if not has_winner:
+                    assert len(winners) == 1
+                    winner_board = winners[0, 0]
+                    points = boards[winner_board].sum()
+                    print(f'Part One: Winner Board = {winner_board}, Winning Number = {number}, Points = {points}, Total Points = {number*points}')
+                    has_winner = True
+                winner_board = set(winners[:, 0])
+                boards_not_won = boards_not_won - winner_board
+                if len(boards_not_won) == 1:
+                    last_board = list(boards_not_won)[0]
+                if len(boards_not_won) == 0:
+                    assert last_board is not None
+                    points = boards[last_board].sum()
+                    print(f'Part Two: Last Board = {last_board}, Winning Number = {number}, Points = {points}, Total Points = {number*points}')
+                    return
 
 
 bingo(
