@@ -1,91 +1,70 @@
 import numpy as np
+from itertools import chain
 import re
 
 
 class Cuboid:
     def __init__(self, coords):
-        self.coords = np.asarray(coords).reshape((3, 2))
+        self.c = np.asarray(coords).reshape((3, 2))
 
     def count(self):
-        return np.prod(self.coords[:, 1] - self.coords[:, 0] + 1)
+        return np.prod(self.c[:, 1] - self.c[:, 0] + 1)
 
     def __repr__(self):
-        return str(self.coords.reshape((-1)))
+        return str(self.c.reshape((-1)))
 
-    def valid(self):
-        return np.all(self.coords[:, 0] <= self.coords[:, 1])
+    def intersects(self, other):
+        return np.all(np.logical_and(self.c[:, 0] <= other.c[:, 1], other.c[:, 0] <= self.c[:, 1]))
 
-    def split_with(self, other):
-        result = set([self])
+    def split_axis(self, positive, axis, value):
+        other_coords = self.c.copy()
+        if positive:
+            other_coords[axis, 0] = value+1
+            self.c[axis, 1] = value
+        else:
+            self.c[axis, 0] = value
+            other_coords[axis, 1] = value-1
 
-        for c in range(3):
-            new_result = set()
-            for r in result:
-                assert r.valid()
+        return Cuboid(other_coords)
 
-                if r.coords[c, 0] < other.coords[c, 0] <= r.coords[c, 1]:
-                    new_coords = r.coords.copy()
-                    new_coords[c, 1] = other.coords[c, 0] - 1
-                    new_result.add(Cuboid(new_coords))
+    def contains(self, point):
+        return np.all(np.logical_and(self.c[:, 0] <= point, point <= self.c[:, 1]))
 
-                    new_coords = r.coords.copy()
-                    new_coords[c, 0] = other.coords[c, 0]
-                    r = Cuboid(new_coords)
+    def minus(self, other):
+        # returns  [self] AND NOT [other]
+        # sets self to [self] AND [other]
+        if not self.intersects(other):
+            return [self]
+        else:
+            result = []
 
-                assert r.valid()
+            for axis in range(3):
+                for split, positive in zip(other.c[axis], (False, True)):
+                    if self.c[axis, 0] <= split <= self.c[axis, 1]:
+                        result.append(self.split_axis(positive, axis, split))
 
-                if r.coords[c, 0] <= other.coords[c, 1] < r.coords[c, 1]:
-                    new_coords = r.coords.copy()
-                    new_coords[c, 1] = other.coords[c, 1]
-                    new_result.add(Cuboid(new_coords))
-
-                    new_coords = r.coords.copy()
-                    new_coords[c, 0] = other.coords[c, 1] + 1
-                    r = Cuboid(new_coords)
-
-                if r.valid():
-                    new_result.add(r)
-
-                result = new_result
-
-        return result
-
-
-def split(block, other):
-    return block.split_with(other), other.split_with(block)
+            return result
 
 
 def reboot(input):
-    blocks = set()
+    blocks = []
 
     r = re.compile(r'(on|off) x=([0-9\-]*)..([0-9\-]*),y=([0-9\-]*)..([0-9\-]*),z=([0-9\-]*)..([0-9\-]*)')
     for line in input.split('\n'):
         m = r.match(line)
         assert m is not None
         state = {'on': True, 'off': False}[m.group(1)]
+        this_block = Cuboid([int(m.group(i)) for i in range(2, 8)])
 
-        this_block = set([Cuboid([int(m.group(i)) for i in range(2, 8)])])
+        new_blocks = []
 
-        while len(blocks) > 0:
-            updated_blocks = set()
-            this_block_split = set()
-
-            for block in blocks:
-                for this in this_block:
-                    b, t = split(block, this)
-                    updated_blocks |= b
-                    this_block_split |= t
-
-            if len(blocks) == len(updated_blocks) and len(this_block) == len(this_block_split):
-                break
-
-            blocks = updated_blocks
-            this_block = this_block_split
+        for b in blocks:
+            new_blocks.extend(b.minus(this_block))
 
         if state:
-            blocks |= this_block
-        else:
-            blocks -= this_block
+            new_blocks.append(this_block)
+
+        blocks = new_blocks
 
     num_on = sum([block.count() for block in blocks])
     print(f'Number of blocks on: {num_on}')
@@ -97,7 +76,7 @@ on x=11..13,y=11..13,z=11..13
 off x=9..11,y=9..11,z=9..11
 on x=10..10,y=10..10,z=10..10'''
 )
-exit()
+
 
 reboot(
     '''on x=-5..47,y=-31..22,z=-19..33
@@ -161,7 +140,8 @@ off x=-70369..-16548,y=22648..78696,z=-1892..86821
 on x=-53470..21291,y=-120233..-33476,z=-44150..38147
 off x=-93533..-4276,y=-16170..68771,z=-104985..-24507'''
 )
-exit()
+
+
 reboot(
     '''on x=-29..23,y=-30..15,z=-3..49
 on x=-15..38,y=-36..10,z=-43..7
