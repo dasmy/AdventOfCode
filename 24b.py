@@ -55,8 +55,8 @@ for iblock, (div_z_26, n1, n2) in enumerate(BLOCKS):
         print(digit, end=' ')
         for z, s in prev_out.items():
             r = block(digit, z, div_z_26, n1, n2)
-            out[r] = max(out.get(r, 0), 10*s+digit)
+            out[r] = min(out.get(r, 1000000000000000), 10*s+digit)
     print(f'\n{iblock}: {len(out)}')
     prev_out = out
 
-print(f'Maximum valid serial number: {out[0]}')
+print(f'Minimum valid serial number: {out[0]}')
