@@ -126,7 +126,7 @@ def play(rooms):
         if finished(rooms):
             if energy < best_so_far:
                 best_so_far = energy
-                print(f'New minimum: {energy}')
+                # print(f'New minimum: {energy}')
         else:
             for f, r, c in possible_moves(pack(field, rooms)):
                 fr = pack(f, r)
@@ -148,5 +148,10 @@ B = 2
 C = 3
 D = 4
 
+print('Part One:')
+play([[B, A], [C, D], [B, C], [D, A]])
+play([[B, C], [A, D], [B, D], [C, A]])
+
+print('Part Two:')
 play([[B, D, D, A], [C, C, B, D], [B, B, A, C], [D, A, C, A]])
-play([[2, 4, 4, 3], [1, 3, 2, 4], [2, 2, 1, 4], [3, 1, 3, 1]])
+play([[B, D, D, C], [A, C, B, D], [B, B, A, D], [C, A, C, A]])

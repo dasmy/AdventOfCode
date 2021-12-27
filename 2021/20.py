@@ -7,36 +7,40 @@ def print_image(img):
         print(''.join(['#' if c else '.' for c in line]))
 
 
-def filter_image(steps, algo, image):
+def filter_image(tasks, algo, input):
     algo = np.fromiter((True if c == '#' else False for c in algo), dtype=bool, count=len(algo))
 
-    img = []
-    for line in image.split('\n'):
-        line = line.strip()
-        img. append(np.fromiter((True if c == '#' else False for c in line), dtype=bool, count=len(line)))
-    image = np.pad(np.asarray(img), pad_width=1)
+    for part, steps in tasks:
+        img = []
+        for line in input.split('\n'):
+            line = line.strip()
+            img. append(np.fromiter((True if c == '#' else False for c in line), dtype=bool, count=len(line)))
+        image = np.pad(np.asarray(img), pad_width=1)
 
-    for step in range(steps):
-        print(step, end=', ')
-        image = np.pad(image, pad_width=2, mode='edge')
-        target = np.zeros_like(image, dtype=bool)
-        for x in range(1, image.shape[0] - 1):
-            for y in range(1, image.shape[1] - 1):
-                kernel = image[x-1:x+2, y-1:y+2]
-                bits = util.ba2int(bitarray(list(kernel.reshape((-1)))))
-                target[x, y] = algo[bits]
+        for step in range(steps):
+            # print_image(image)
+            print(step, end=', ')
+            image = np.pad(image, pad_width=2, mode='edge')
+            target = np.zeros_like(image, dtype=bool)
+            for x in range(1, image.shape[0] - 1):
+                for y in range(1, image.shape[1] - 1):
+                    kernel = image[x-1:x+2, y-1:y+2]
+                    bits = util.ba2int(bitarray(list(kernel.reshape((-1)))))
+                    target[x, y] = algo[bits]
 
-        target[0, :] = target[1, :]
-        target[-1, :] = target[-2, :]
-        target[:, 0] = target[:, 1]
-        target[:, -1] = target[:, -2]
-        image = target
+            target[0, :] = target[1, :]
+            target[-1, :] = target[-2, :]
+            target[:, 0] = target[:, 1]
+            target[:, -1] = target[:, -2]
+            image = target
 
-    print(np.count_nonzero(target))
+        # print_image(image)
+
+        print(f'{part}: {np.count_nonzero(target)}')
 
 
 filter_image(
-    50,
+    [('Part One', 2), ('Part Two', 50)],
     '..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#',
     '''#..#.
 #....
@@ -46,7 +50,7 @@ filter_image(
 )
 
 filter_image(
-    50,
+    [('Part One', 2), ('Part Two', 50)],
     '#.#.##..#..#..###.#.#....#.########.#.##.#..#.###..###.##.#.##.#.#.....#..##.#.#..###.###.######..#.#..#######.#..#....####..###.####.###.#.#######.#...#...#.##.###..###..##.#.#.###........##.#.....#.##.#.####...#...#.#..###.#.#...#....#...####..#.########.#...#.####.#####..#.#.###......#.##...###..##..#.#..#....#..###.#.##.....##.#####..##.####.#.###....##.###...#.##....##.#..#.#..#..#.##...#.##..#####.####.#.##...##...##...#.##.#.#.####..##...#.....#......#.#......#..###..#..##..##.###..#####..#..##.#..#.',
     '''.....#..#...###..##.#.#..#..#......#.##.###.#...#.#...#####......#...#.......###.##.#.#####.##....#.
 ....#.###..#...#.#..#..#..#.#.#.##.##..###......####..#.##......###...#....##....#.##.###.##..#...##

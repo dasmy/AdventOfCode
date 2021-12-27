@@ -48,15 +48,19 @@ BLOCKS = [
 ]
 
 
-prev_out = {0: 0}
-for iblock, (div_z_26, n1, n2) in enumerate(BLOCKS):
-    out = {}
-    for digit in range(9, 0, -1):
-        print(digit, end=' ')
-        for z, s in prev_out.items():
-            r = block(digit, z, div_z_26, n1, n2)
-            out[r] = max(out.get(r, 0), 10*s+digit)
-    print(f'\n{iblock}: {len(out)}')
-    prev_out = out
+def search(task, comparator, extreme):
+    prev_out = {0: 0}
+    for iblock, (div_z_26, n1, n2) in enumerate(BLOCKS):
+        out = {}
+        for digit in range(9, 0, -1):
+            print(digit, end=' ')
+            for z, s in prev_out.items():
+                r = block(digit, z, div_z_26, n1, n2)
+                out[r] = comparator(out.get(r, extreme), 10*s+digit)
+        print(f'\n{iblock}: {len(out)}')
+        prev_out = out
 
-print(f'Maximum valid serial number: {out[0]}')
+    print(f'{task} valid serial number: {out[0]}')
+
+search('Part One: Maximum', max, 0)
+search('Part Two: Minimum', min, 1000000000000000)

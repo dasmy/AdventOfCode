@@ -1,8 +1,10 @@
 import numpy as np
 
+
 def analyze_scanners(input):
     scanners = {}
-    
+    positions = {}
+
     current_list = []
     current_scanner = 0
     for line in input.split('\n'):
@@ -20,6 +22,7 @@ def analyze_scanners(input):
 
     known_beacons = set((tuple(b) for b in scanners[0]))
     del(scanners[0])
+    positions[0] = np.array([0, 0, 0])
 
     while len(scanners) > 0:
         not_found = {}
@@ -38,6 +41,7 @@ def analyze_scanners(input):
                                         delta = s - np.array(k)
                                         shifted = set((tuple(b) for b in flipped - delta))
                                         if len(known_beacons.intersection(shifted)) >= 12:
+                                            positions[i] = delta
                                             print(i, delta)
                                             raise StopIteration
             except StopIteration:
@@ -50,7 +54,12 @@ def analyze_scanners(input):
         print(f'Did not find {len(not_found)} out of {len(scanners)} remaining scanners: {len(known_beacons)}, {[len(s) for s in scanners.values()]}')
         scanners = not_found
 
-    print(len(known_beacons))
+    max_dist = 0
+    for i in positions.values():
+        for j in positions.values():
+            max_dist = max(max_dist, np.sum(np.abs(i - j)))
+
+    print(f'PartOne: {len(known_beacons)}, Part Two: {max_dist}')
 
 
 analyze_scanners(

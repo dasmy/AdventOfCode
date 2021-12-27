@@ -125,9 +125,25 @@ assert magnitude('[[[[5,0],[7,4]],[5,5]],[6,6]]') == 1137
 assert magnitude('[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]') == 3488
 
 
-def homework(*args):
+def homework_part_one(*args):
     sum = list_add(*args)
-    print(sum, magnitude(sum))
+    print('Part One: ', sum, magnitude(sum))
+
+
+def homework_part_two(*args):
+    max_mag = 0
+    for i in args:
+        for j in args:
+            if i != j:
+                mag = magnitude(add(i, j))
+                max_mag = max(max_mag, mag)
+
+    print(f'Part Two: {max_mag}')
+
+
+def homework(*args):
+    homework_part_one(*args)
+    homework_part_two(*args)
 
 
 homework(

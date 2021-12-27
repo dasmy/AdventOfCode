@@ -30,10 +30,9 @@ def simulate(target_x, target_y):
 
     hits = np.asarray([[vx[tuple(f)], vy[tuple(f)]] for f in np.argwhere(found)])
     max_y_at = np.argmax(hits[:, 1])
-    print(f'Found {len(hits)} hits. Maximum height with initial velocity {hits[max_y_at]}, Height: {y_max[found].max()}')
+    print(f'Part One: Maximum height with initial velocity {hits[max_y_at]}, Height: {y_max[found].max()}')
+    print(f'Part Two: Found {len(hits)} hits. Maximum height with initial velocity {hits[max_y_at]}, Height: {y_max[found].max()}')
 
 
 simulate((20, 30), (-10, -5))
 simulate((25, 67), (-260, -200))
-
-

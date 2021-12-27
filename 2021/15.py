@@ -1,34 +1,50 @@
 import numpy as np
 
 
+def replicate(input, i):
+    out = input.copy()
+    addon = out.copy()
+    for _ in range(1, i):
+        addon += 1
+        addon[addon == 10] = 1
+        out = np.hstack((out, addon))
+
+    addon = out.copy()
+    for _ in range(1, i):
+        addon += 1
+        addon[addon == 10] = 1
+        out = np.vstack((out, addon))
+
+    return out
+
+
 def find_path(input):
-    risk = np.asarray(input, dtype=int)
+    for task, risk in [('Part One', np.asarray(input, dtype=int)), ('Part Two', replicate(np.asarray(input, dtype=int), 5))]:
+        visited = np.zeros_like(risk, dtype=bool)
+        distance = risk.sum()*np.ones_like(risk, dtype=int)
+        distance[0, 0] = 0
+        delta = np.asarray([[-1, 0], [1, 0], [0, -1], [0, 1]])
 
-    visited = np.zeros_like(risk, dtype=bool)
-    distance = risk.sum()*np.ones_like(risk, dtype=int)
-    distance[0, 0] = 0
-    delta = np.asarray([[-1, 0], [1, 0], [0, -1], [0, 1]])
+        current_total = 0
 
-    current_total = 0
+        start = (0, 0)
+        target = (risk.shape[0] - 1, risk.shape[1] - 1)
 
-    start = (0, 0)
-    target = (risk.shape[0] - 1, risk.shape[1] - 1)
+        current_node = start
+        while current_node != target:
 
-    current_node = start
-    while current_node != target:
+            for d in delta:
+                neighbour = tuple(current_node + d)
+                if all(n >= 0 and n < s for n, s in zip(neighbour, risk.shape)) and not visited[neighbour]:
+                    distance[neighbour] = min(distance[neighbour], current_total + risk[neighbour])
 
-        for d in delta:
-            neighbour = tuple(current_node + d)
-            if all(n >= 0 and n < s for n, s in zip(neighbour, risk.shape)) and not visited[neighbour]:
-                distance[neighbour] = min(distance[neighbour], current_total + risk[neighbour])
+            visited[current_node] = True
+            distance[current_node] = 999999
 
-        visited[current_node] = True
-        distance[current_node] = 999999
+            current_node = np.unravel_index(np.argmin(distance), distance.shape)
+            current_total = distance[current_node]
 
-        current_node = np.unravel_index(np.argmin(distance), distance.shape)
-        current_total = distance[current_node]
-
-    print(f'Minimum Risk: {current_total}')
+        print(f'{task} - Minimum Risk: {current_total}')
 
 
 find_path([
