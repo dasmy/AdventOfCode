@@ -1,1 +1,1 @@
-from day_XYinp import INPUT
+from .day_XYinp import INPUT
